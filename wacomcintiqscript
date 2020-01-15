@@ -1,0 +1,260 @@
+#!/bin/bash
+
+#big wacom setter of doom
+#Eylul Dogruel / Azbulutlu
+#2013-2019
+#this is a work in progress, intended to be a template.
+#it is not intended to be used unedited as a finished work.
+#GPL 3.0 - feel free to use it or adopt it to your needs
+
+
+#wacom cintiq companion hybrid
+mydevice="Wacom ISDv5 307"
+pad="$mydevice Pad pad"
+touch="Wacom ISDv5 309 Finger touch"
+stylus="$mydevice Pen stylus"
+eraser="$mydevice Pen eraser"
+
+#this is not factored so don't forget to add new layout array down in the code
+
+#key sets
+#krita
+
+krita[2]="key shift" #above circle - top
+krita[3]="key ctrl" #above circle - bottom
+
+krita[8]="key alt" #below circle - top
+krita[9]="key tab" #below circle - bottom
+
+krita[1]="key alt ctrl shift n" #center button 
+
+krita[10]="key ctrl shift z"       #circle - right
+krita[11]="key ctrl shift +"       #circle - top
+krita[12]="key ctrl z" #circle - left
+krita[13]="key ctrl -"       #circle - bottom
+
+krita[0]=""
+krita[5]=""
+krita[6]=""
+krita[7]=""
+krita[4]=""
+
+
+
+toggle1=$HOME/.wacomscreen.1
+toggle2=$HOME/.wacomscreen.2
+
+
+usage ()
+{
+  echo "Wacom Setup script of doom - usage"
+  echo "setup:Cintiq screen:Nvidia binary drivers,dualscreen"
+  echo ""
+  echo "--screen [0,1,2]: screen mode, toggle or"
+  echo " 0: both screens, 1: primary(laptop), 2:HDMI"
+  echo ""
+  echo "--key [profile]: set up leds and buttons"
+  
+}
+
+#button ()
+#{
+#echo xsetwacom --set '$pad' button $1 \"$2\"
+#}
+
+#screensetter ()
+#{
+#echo xsetwacom --set '$stylus' MapToOutput $1 
+#}
+
+screen()
+{
+
+  #how coordinates works - see link below for screen rotation cases
+  #http://sourceforge.net/apps/mediawiki/linuxwacom/index.php?title=Dual_and_Multi-Monitor_Set_Up
+  #
+  #| width     0      x-offset|      
+  #|   0     height   y-offset|       all sizes in percentage to total width/height
+  #|   0       0         1    |
+  #
+  # examples:
+  #     all    |    top       bottom    |
+  # |1  0  0|  | |1  0  0|  |1  0   0 | |
+  # |0  1  0|  | |0 0.5 0|  |0 0.5 0.5| |
+  # |0  0  1|  | |0  0  1|  |0  0   1 | |
+
+  #both screens - remove all indicators
+  if test "$1" == "0"; then
+   if test -e $toggle1; then rm $toggle1; fi
+   if test -e $toggle2; then rm $toggle2; fi
+   #echo "xinput set-prop \"$stylus\" --type=float \"Coordinate Transformation Matrix\" 1.16 0 -0.08 0 1.08 0 0 0 0.96"  
+   echo "xinput set-prop \"$stylus\" --type=float \"Coordinate Transformation Matrix\" 1 0 0 0 1 0 0 0 1"
+   echo "xinput set-prop \"$eraser\" --type=float \"Coordinate Transformation Matrix\" 1 0 0 0 1 0 0 0 1"
+   echo "xinput set-prop \"$touch\" --type=float \"Coordinate Transformation Matrix\" 1 0 0 0 1 0 0 0 1"
+   xinput set-prop "$stylus" --type=float "Coordinate Transformation Matrix" 1 0 0 0 1 0 0 0 1
+   xinput set-prop "$eraser" --type=float "Coordinate Transformation Matrix" 1 0 0 0 1 0 0 0 1
+   xinput set-prop "$touch" --type=float "Coordinate Transformation Matrix" 1 0 0 0 1 0 0 0 1
+  elif test "$1" == "1"; then
+   touch $toggle1
+   if test -e $toggle2; then rm $toggle2; fi
+   echo "xsetwacom --set \"$stylus\" MapToOutput \"Head-0\"" #name of my primary monitor
+   echo "xsetwacom --set \"$eraser\" MapToOutput \"Head-0\""
+   echo "xsetwacom --set \"$touch\" MapToOutput \"Head-0\"" 
+   xsetwacom --set "$stylus" MapToOutput "Head-0"
+   xsetwacom --set "$eraser" MapToOutput "Head-0"
+   xsetwacom --set "$touch" MapToOutput "Head-0" 
+  elif test "$1" == "2"; then
+   if test -e $toggle1; then rm $toggle1; fi
+   touch $toggle2
+   echo "xsetwacom --set \"$stylus\" MapToOutput \"Head-1\"" #name of my secondary
+   echo "xsetwacom --set \"$eraser\" MapToOutput \"Head-1\""
+   echo "xsetwacom --set \"$touch\" MapToOutput \"Head-1\""
+   xsetwacom --set "$stylus" MapToOutput "Head-1"
+   xsetwacom --set "$eraser" MapToOutput "Head-1"
+   xsetwacom --set "$touch" MapToOutput "Head-1"
+  else
+   echo "wrong argument for -screen: $1"
+   usage
+  fi
+  exit
+} 
+
+#first
+#device list
+
+#script for setting up Wacom buttons and abilities
+
+#------------------
+# pad
+#------------------
+
+view()
+{
+echo "Device: $pad"
+xsetwacom --get "$pad" button 1
+echo ""
+xsetwacom --get "$pad" button 2
+xsetwacom --get "$pad" button 3
+xsetwacom --get "$pad" button 8
+xsetwacom --get "$pad" button 9
+echo ""
+xsetwacom --get "$pad" button 10
+xsetwacom --get "$pad" button 11
+xsetwacom --get "$pad" button 12
+xsetwacom --get "$pad" button 13
+echo ""
+echo "Device: $stylus"
+#1 left click
+#2 middle click
+#3 right click
+xsetwacom --get "$stylus" button 1 #touch down the pen
+xsetwacom --get "$stylus" button 2 #lower button
+xsetwacom --get "$stylus" button 3 #upper button
+
+echo ""
+echo "Device: $eraser"
+xsetwacom --get "$eraser" button 1 #touch down the pen
+xsetwacom --get "$eraser" button 2 #upper (lower) button
+xsetwacom --get "$eraser" button 3 #lower (upper) button
+exit
+
+}
+
+setKeysCintiq(){
+#apply current pad profile 
+if test $1 = "krita"  
+ then 
+  echo "krita profile"
+  currProfile=("${krita[@]}")
+else 
+ #use default profile
+ #no default profile at the moment
+ echo "unknown profile"
+ exit
+fi
+
+  for (( i = 1 ; i<14 ; i++ )) 
+   do
+    #skip unset buttons
+    if test "${currProfile[$i]}" != ""
+     then
+      echo "      xsetwacom --set \"$pad\" button $i ${currProfile[$i]}"
+      xsetwacom --set "$pad" button $i ${currProfile[$i]}
+     fi
+   done
+
+exit
+}
+
+
+
+
+#MAIN PROGRAM
+
+#check for screen
+if test "$1" == "--screen"
+ then
+ if test ! -e $2  #WHY IS THIS NEGATED???
+ then 
+  screen "$2"
+ else
+  #no arguments, toggle then exit
+  if test -e $toggle1; then screen "2" #switch 1->2
+  elif test -e $toggle2; then screen "0" #switch 2->0
+  else screen "1"  #switch 0->1
+  fi
+ fi
+
+#check for key
+elif test "$1" == "--key"
+ then
+ if test ! -e $2 
+  then 
+   setKeysCintiq $2
+ else
+   echo "no such key profile found! Current profile is following" 
+   view
+ fi
+#is it a pressure setting
+elif test "$1" == "--pressure"
+ then
+ if test ! -e $2
+  then
+  if test "$2" == "verysoft"
+   then
+    echo "pressure setting verysoft"
+    xsetwacom --set "$stylus" PressureCurve 0 100 0 100
+    xsetwacom --set "$eraser" PressureCurve 0 100 0 100
+  elif test "$2" == "soft"
+   then
+    echo "pressure setting soft"
+    xsetwacom --set "$stylus" PressureCurve 0 50 50 100
+    xsetwacom --set "$eraser" PressureCurve 0 50 50 100
+    xsetwacom --set "$stylus" Threshold 1
+    xsetwacom --set "$eraser" Threshold 1
+  elif test "$2" == "firm"
+   then
+    echo "pressure setting firm"
+    xsetwacom --set "$stylus" PressureCurve 50 0 100 50
+    xsetwacom --set "$eraser" PressureCurve 50 0 100 50
+  elif test "$2" == "veryfirm"
+   then
+    echo "pressure setting veryfirm"
+    xsetwacom --set "$stylus" PressureCurve 100 0 100 0
+    xsetwacom --set "$eraser" PressureCurve 100 0 100 0
+  else
+   echo "pressure setting medium(default)"
+   xsetwacom --set "$stylus" PressureCurve 0 0 100 100
+   xsetwacom --set "$eraser" PressureCurve 0 0 100 100
+  fi
+ exit
+ else
+  "specify pressure argument" 
+ fi
+else
+ echo "wrong argument!"
+fi
+#if it gets this far either the options were blank or wrong input
+usage
+
+
